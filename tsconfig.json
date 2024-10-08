@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Target the latest ECMAScript standard for optimal ESM support.
+    "module": "ESNext", // Output ES Modules.
+    "moduleResolution": "Node", // Use Node module resolution strategy.
+    "strict": true, // Enable strict type-checking.
+    "esModuleInterop": true, // Enable interoperability between CommonJS and ES modules.
+    "skipLibCheck": true, // Skip type checking of all declaration files for faster builds.
+    "declaration": true, // Generate declaration files (.d.ts).
+    "declarationMap": true, // Generate sourcemaps for declaration files.
+    "sourceMap": true, // Enable sourcemaps for debugging.
+    "outDir": "dist", // Output directory for compiled files.
+    "allowSyntheticDefaultImports": true, // Allow default imports from modules with no default export.
+    "forceConsistentCasingInFileNames": true, // Enforce consistent file casing.
+    "noEmit": false
+  },
+  "exclude": ["node_modules", "dist"] // Exclude node_modules and dist from compilation.
+}
