@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it } from "vitest";
 import { FlagsConfiguration } from "../types";
 import { buildEvaluationMachine } from "../";
 
