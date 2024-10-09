@@ -1,5 +1,8 @@
 import { FlagConfiguration, Strategy, UserConfiguration } from "./types";
 
+const isNumber = (value: unknown): value is number => typeof value === "number";
+const isString = (value: unknown): value is string => typeof value === "string";
+
 const isEligibleForStrategy = (
   strategy: Strategy,
   userConfiguration: UserConfiguration
@@ -18,8 +21,8 @@ const isEligibleForStrategy = (
         const fieldValue = userConfiguration[rule.field];
 
         return (
-          typeof fieldValue === "number" &&
-          typeof rule.value === "number" &&
+          isNumber(fieldValue) &&
+          isNumber(rule.value) &&
           fieldValue > rule.value
         );
       }
@@ -28,8 +31,8 @@ const isEligibleForStrategy = (
         const fieldValue = userConfiguration[rule.field];
 
         return (
-          typeof fieldValue === "number" &&
-          typeof rule.value === "number" &&
+          isNumber(fieldValue) &&
+          isNumber(rule.value) &&
           fieldValue < rule.value
         );
       }
@@ -38,8 +41,8 @@ const isEligibleForStrategy = (
         const fieldValue = userConfiguration[rule.field];
 
         return (
-          typeof fieldValue === "string" &&
-          typeof rule.value === "string" &&
+          isString(fieldValue) &&
+          isString(rule.value) &&
           fieldValue.includes(rule.value)
         );
       }
@@ -48,8 +51,8 @@ const isEligibleForStrategy = (
         const fieldValue = userConfiguration[rule.field];
 
         return (
-          typeof fieldValue === "string" &&
-          typeof rule.value === "string" &&
+          isString(fieldValue) &&
+          isString(rule.value) &&
           !fieldValue.includes(rule.value)
         );
       }
