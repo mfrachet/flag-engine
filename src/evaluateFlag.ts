@@ -10,6 +10,7 @@ export const evaluateFlag = (
 
   const eligibleStrategy = getEligibleStrategy(flagConfig, userConfiguration);
   if (!eligibleStrategy) return false;
+  if (eligibleStrategy.variants.length === 0) return true;
 
   const variant = resolveStrategyVariant(
     eligibleStrategy,
