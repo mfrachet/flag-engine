@@ -1,8 +1,81 @@
 import { expect, describe, it, beforeEach } from "vitest";
-import { EvaluationMachine, FlagsConfiguration } from "../types";
+import { FlagsConfiguration } from "../types";
 import { buildEvaluationMachine } from "../buildEvaluationMachine";
 
 describe("api", () => {
+  describe("setUserConfiguration", () => {
+    it("sets the user configuration", () => {
+      const initialFlagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                {
+                  field: "__id",
+                  operator: "equals",
+                  value: "marvin",
+                },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(initialFlagsConfig, {
+        __id: "marvin",
+      });
+
+      expect(machine.evaluate("new-homepage")).toEqual(true);
+      machine.setUserConfiguration({ __id: "yo" });
+      expect(machine.evaluate("new-homepage")).toEqual(false);
+    });
+  });
+
+  describe("evaluate", () => {
+    it("returns false when the flag does not exist", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(flagsConfig, { __id: "yo" });
+      expect(machine.evaluate("does-not-exist")).toEqual(false);
+    });
+
+    it("returns false when the flag is disabled", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "disabled",
+          strategies: [],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(flagsConfig, { __id: "yo" });
+      expect(machine.evaluate("new-homepage")).toEqual(false);
+    });
+
+    it("returns true when the flag is enabled with no strategies", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(flagsConfig, { __id: "yo" });
+      expect(machine.evaluate("new-homepage")).toEqual(true);
+    });
+  });
+
   describe("evaluateAll", () => {
     it("returns false when the flag is disabled", () => {
       const flagsConfig: FlagsConfiguration = [
@@ -314,6 +387,65 @@ describe("api", () => {
       });
 
       expect(machine.evaluateAll()).toEqual({ "new-homepage": "B" });
+    });
+
+    it("returns false when the variant are not configured correctly", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [
+            {
+              name: "other",
+              rules: [],
+              variants: [
+                {
+                  name: "OtherControl",
+                  percent: 0,
+                },
+                {
+                  name: "OtherB",
+                  percent: 0,
+                },
+              ],
+            },
+            {
+              name: "default",
+              rules: [
+                {
+                  field: "firstName",
+                  operator: "contains",
+                  value: "marvin",
+                },
+                {
+                  field: "lastName",
+                  operator: "contains",
+                  value: "frachet",
+                },
+              ],
+              variants: [
+                {
+                  name: "Control",
+                  percent: 90,
+                },
+                {
+                  name: "B",
+                  percent: 10,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(flagsConfig, {
+        __id: "yo",
+        firstName: "marvin",
+        lastName: "frachet",
+        country: "FR",
+      });
+
+      expect(machine.evaluateAll()).toEqual({ "new-homepage": false });
     });
   });
 });
