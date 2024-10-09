@@ -15,7 +15,8 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +29,8 @@
     "rollup": "^4.24.0",
     "tslib": "^2.7.0",
     "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
   },
   "dependencies": {
     "murmurhash-js": "^1.0.0"

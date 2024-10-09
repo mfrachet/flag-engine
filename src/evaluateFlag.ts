@@ -6,7 +6,7 @@ export const evaluateFlag = (
   flagConfig: FlagConfiguration,
   userConfiguration: UserConfiguration
 ) => {
-  if (flagConfig.strategies.length === 0) return false;
+  if (flagConfig.strategies.length === 0) return true;
 
   const eligibleStrategy = getEligibleStrategy(flagConfig, userConfiguration);
   if (!eligibleStrategy) return false;
