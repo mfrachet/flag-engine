@@ -7,10 +7,19 @@ export type ConditionOperator =
   | "greater_than"
   | "less_than";
 
-export type Rule = {
-  field: string;
-  operator: ConditionOperator;
-  value: string | number | boolean;
+export type Rule =
+  | {
+      field: string;
+      operator: ConditionOperator;
+      value: string | number | boolean;
+    }
+  | {
+      inSegment: Segment;
+    };
+
+export type Segment = {
+  name: string;
+  rules: Array<Rule>;
 };
 
 export type Strategy = {

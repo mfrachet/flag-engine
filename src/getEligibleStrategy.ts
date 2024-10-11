@@ -1,15 +1,19 @@
-import { FlagConfiguration, Strategy, UserConfiguration } from "./types";
+import { FlagConfiguration, Rule, UserConfiguration } from "./types";
 
 const isNumber = (value: unknown): value is number => typeof value === "number";
 const isString = (value: unknown): value is string => typeof value === "string";
 
 const isEligibleForStrategy = (
-  strategy: Strategy,
+  rules: Rule[],
   userConfiguration: UserConfiguration
-) => {
-  if (strategy.rules.length === 0) return true;
+): boolean => {
+  if (rules.length === 0) return true;
 
-  return strategy.rules.every((rule) => {
+  return rules.every((rule) => {
+    if ("inSegment" in rule) {
+      return isEligibleForStrategy(rule.inSegment.rules, userConfiguration);
+    }
+
     switch (rule.operator) {
       case "equals":
         return userConfiguration[rule.field] === rule.value;
@@ -68,6 +72,6 @@ export const getEligibleStrategy = (
   userConfiguration: UserConfiguration
 ) => {
   return flagConfig.strategies.find((strategy) =>
-    isEligibleForStrategy(strategy, userConfiguration)
+    isEligibleForStrategy(strategy.rules, userConfiguration)
   );
 };

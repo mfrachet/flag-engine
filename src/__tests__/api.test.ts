@@ -447,5 +447,43 @@ describe("api", () => {
 
       expect(machine.evaluateAll()).toEqual({ "new-homepage": false });
     });
+
+    it("returns true when the user is in the segment", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [
+            {
+              name: "other",
+              rules: [
+                {
+                  inSegment: {
+                    name: "segment-1",
+                    rules: [
+                      {
+                        field: "country",
+                        operator: "contains",
+                        value: "F",
+                      },
+                    ],
+                  },
+                },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const machine = buildEvaluationMachine(flagsConfig, {
+        __id: "yo",
+        firstName: "marvin",
+        lastName: "frachet",
+        country: "FR",
+      });
+
+      expect(machine.evaluateAll()).toEqual({ "new-homepage": true });
+    });
   });
 });
