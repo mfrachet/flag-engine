@@ -19,5 +19,9 @@ jobs:
 
       - uses: ./.github/actions/monorepo
 
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install
+
       - name: Shared CI checks
         run: pnpm run ci
