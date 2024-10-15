@@ -15,7 +15,7 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "rollup -c rollup.config.mjs",
+    "build": "rm -rf dist .turbo && rollup -c rollup.config.mjs",
     "start": "tsx src/index.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage",

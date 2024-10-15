@@ -1,6 +1,5 @@
 import { FlagConfiguration, Rule, UserConfiguration } from "./types";
 
-const isNumber = (value: unknown): value is number => typeof value === "number";
 const isString = (value: unknown): value is string => typeof value === "string";
 
 const isUndefined = (value: unknown): value is undefined =>
@@ -63,7 +62,17 @@ export const isEligibleForStrategy = (
       case "in": {
         const fieldValue = userConfiguration[rule.field];
 
-        return Array.isArray(rule.value) && rule.value.includes(fieldValue);
+        return (
+          Array.isArray(rule.value) && rule.value.indexOf(fieldValue) !== -1
+        );
+      }
+
+      case "not_in": {
+        const fieldValue = userConfiguration[rule.field];
+
+        return (
+          Array.isArray(rule.value) && rule.value.indexOf(fieldValue) === -1
+        );
       }
 
       default:

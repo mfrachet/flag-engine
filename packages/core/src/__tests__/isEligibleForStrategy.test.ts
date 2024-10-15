@@ -182,4 +182,152 @@ describe("isEligibleForStrategy", () => {
       expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
     }
   );
+
+  it.each([
+    ["hello world", "world", true],
+    ["hello world", "planet", false],
+    ["apple pie", "apple", true],
+    ["apple pie", "pie", true],
+    ["apple pie", "banana", false],
+    ["JavaScript", "script", false], // case-sensitive
+    ["JavaScript", "Script", true],
+    ["", "", true], // empty string contains an empty string
+    ["hello", "", true], // any string contains an empty string
+    ["open source", "open", true],
+    ["case sensitive", "Case", false],
+    ["The quick brown fox", "fox", true],
+    ["The quick brown fox", "dog", false],
+    ["coding", "code", false],
+    ["coding", "ing", true],
+    ["Paris", "is", true],
+  ])(
+    "when field is '%s' and country is '%s', then it should return '%s' for operator contains",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "contains",
+          field: "country",
+          value: ruleValue,
+        },
+      ];
+
+      const userConfiguration: UserConfiguration = {
+        country: userValue,
+        __id: "yo",
+      };
+
+      expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
+    }
+  );
+
+  it.each([
+    ["hello world", "planet", true],
+    ["hello world", "world", false],
+    ["apple pie", "banana", true],
+    ["apple pie", "apple", false],
+    ["JavaScript", "script", true], // case-sensitive
+    ["JavaScript", "Script", false],
+    ["", "hello", true], // empty string does not contain any non-empty string
+    ["hello", "", false], // any string contains an empty string
+    ["open source", "closed", true],
+    ["case sensitive", "Case", true],
+    ["The quick brown fox", "dog", true],
+    ["The quick brown fox", "fox", false],
+    ["coding", "code", true],
+    ["coding", "ing", false],
+    ["Paris", "London", true],
+    ["Paris", "is", false],
+  ])(
+    "when field is '%s' and country is '%s', then it should return '%s' for operator not_contains",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "not_contains",
+          field: "country",
+          value: ruleValue,
+        },
+      ];
+
+      const userConfiguration: UserConfiguration = {
+        country: userValue,
+        __id: "yo",
+      };
+
+      expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
+    }
+  );
+
+  it.each([
+    [2, [1, 2, 3], true],
+    [4, [1, 2, 3], false],
+    ["banana", ["apple", "banana", "cherry"], true],
+    ["orange", ["apple", "banana", "cherry"], false],
+    ["c", ["a", "b", "c"], true],
+    ["d", ["a", "b", "c"], false],
+    [null, [null, undefined, NaN], true],
+    [0, [null, undefined, NaN], false],
+    [false, [true, false, true], true],
+    [false, [true, true, true], false],
+    [1, [], false], // empty array contains nothing
+    [{ key: "value" }, [1, 2, { key: "value" }], false], // references are different
+    [123, ["string", 123, true], true],
+    ["123", ["string", 123, true], false], // strict comparison
+    ["open", ["open", "source"], true],
+    ["closed", ["open", "source"], false],
+  ])(
+    "when field is '%s' and country is '%s', then it should return '%s' for operator in",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "in",
+          field: "country",
+          value: ruleValue,
+        },
+      ];
+
+      const userConfiguration: UserConfiguration = {
+        country: userValue,
+        __id: "yo",
+      };
+
+      expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
+    }
+  );
+
+  it.each([
+    [2, [1, 2, 3], false],
+    [4, [1, 2, 3], true],
+    ["banana", ["apple", "banana", "cherry"], false],
+    ["orange", ["apple", "banana", "cherry"], true],
+    ["c", ["a", "b", "c"], false],
+    ["d", ["a", "b", "c"], true],
+    [null, [null, undefined, NaN], false],
+    [0, [null, undefined, NaN], true],
+    [false, [true, false, true], false],
+    [false, [true, true, true], true],
+    [1, [], true], // empty array contains nothing
+    [{ key: "value" }, [1, 2, { key: "value" }], true], // references are different
+    [123, ["string", 123, true], false],
+    ["123", ["string", 123, true], true], // strict comparison
+    ["open", ["open", "source"], false],
+    ["closed", ["open", "source"], true],
+  ])(
+    "when field is '%s' and country is '%s', then it should return '%s' for operator not_in",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "not_in",
+          field: "country",
+          value: ruleValue,
+        },
+      ];
+
+      const userConfiguration: UserConfiguration = {
+        country: userValue,
+        __id: "yo",
+      };
+
+      expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
+    }
+  );
 });

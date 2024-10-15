@@ -6,7 +6,8 @@ export type ConditionOperator =
   | "not_contains"
   | "greater_than"
   | "less_than"
-  | "in";
+  | "in"
+  | "not_in";
 
 type RuleValuePrimitive =
   | object
