@@ -8,11 +8,16 @@ export type ConditionOperator =
   | "less_than"
   | "in";
 
-export type RuleValue =
+type RuleValuePrimitive =
+  | object
+  | null
+  | undefined
   | string
   | number
   | boolean
-  | Array<string | number | boolean>;
+  | Date;
+
+export type RuleValue = RuleValuePrimitive | Array<RuleValuePrimitive>;
 
 export type Rule =
   | {
@@ -48,7 +53,7 @@ export type FlagConfiguration = {
 
 export type UserConfiguration = {
   __id: string;
-  [key: string]: string | number | boolean;
+  [key: string]: RuleValuePrimitive;
 };
 
 export type FlagsConfiguration = Array<FlagConfiguration>;
