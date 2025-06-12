@@ -48,3 +48,5 @@ export const createFlagEngine = (
       createUserContext(flagsConfig, userConfiguration),
   };
 };
+
+export type { FlagsConfiguration, UserConfiguration } from "./types";
