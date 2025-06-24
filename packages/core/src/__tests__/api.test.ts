@@ -1,4 +1,4 @@
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import { FlagsConfiguration } from "../types";
 import { createFlagEngine } from "../";
 
@@ -75,6 +75,195 @@ describe("api", () => {
       const engine = createFlagEngine(flagsConfig);
       const userCtx = engine.createUserContext({ __id: "yo" });
       expect(userCtx.evaluate("new-homepage")).toEqual(true);
+    });
+
+    it("calls onFlagEvaluated callback with timing information when flag is evaluated", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "yo" });
+
+      const result = userCtx.evaluate("new-homepage");
+
+      expect(result).toEqual(true);
+      expect(onFlagEvaluated).toHaveBeenCalledTimes(1);
+      expect(onFlagEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flagKey: "new-homepage",
+          evaluationResult: true,
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+          duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "yo" },
+        })
+      );
+
+      const callArgs = onFlagEvaluated.mock.calls[0][0];
+      expect(callArgs.endTime).toBeGreaterThan(callArgs.startTime);
+      expect(callArgs.duration).toBe(callArgs.endTime - callArgs.startTime);
+    });
+
+    it("calls onFlagEvaluated callback when flag evaluation returns false", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                {
+                  field: "__id",
+                  operator: "equals",
+                  value: "marvin",
+                },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "different-user" });
+
+      const result = userCtx.evaluate("new-homepage");
+
+      expect(result).toEqual(false);
+      expect(onFlagEvaluated).toHaveBeenCalledTimes(1);
+      expect(onFlagEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flagKey: "new-homepage",
+          evaluationResult: false,
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+          duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "different-user" },
+        })
+      );
+    });
+
+    it("calls onFlagEvaluated callback when flag evaluation returns a variant string", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                {
+                  field: "__id",
+                  operator: "equals",
+                  value: "marvin",
+                },
+              ],
+              variants: [
+                {
+                  name: "Control",
+                  percent: 50,
+                },
+                {
+                  name: "B",
+                  percent: 50,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "marvin" });
+
+      const result = userCtx.evaluate("new-homepage");
+
+      expect(typeof result).toBe("string");
+      expect(onFlagEvaluated).toHaveBeenCalledTimes(1);
+      expect(onFlagEvaluated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          flagKey: "new-homepage",
+          evaluationResult: result,
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+          duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "marvin" },
+        })
+      );
+    });
+
+    it("does not call onFlagEvaluated callback when flag does not exist", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "yo" });
+
+      const result = userCtx.evaluate("does-not-exist");
+
+      expect(result).toEqual(false);
+      expect(onFlagEvaluated).not.toHaveBeenCalled();
+    });
+
+    it("does not call onFlagEvaluated callback when flag is disabled", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "disabled",
+          strategies: [],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "yo" });
+
+      const result = userCtx.evaluate("new-homepage");
+
+      expect(result).toEqual(false);
+      expect(onFlagEvaluated).not.toHaveBeenCalled();
+    });
+
+    it("measures timing accurately for flag evaluation", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "new-homepage",
+          status: "enabled",
+          strategies: [],
+        },
+      ];
+
+      const onFlagEvaluated = vi.fn();
+      const engine = createFlagEngine(flagsConfig, { onFlagEvaluated });
+      const userCtx = engine.createUserContext({ __id: "yo" });
+
+      userCtx.evaluate("new-homepage");
+
+      const callArgs = onFlagEvaluated.mock.calls[0][0];
+      const measuredDuration = callArgs.duration;
+
+      // The measured duration should be reasonable (not negative, not too large)
+      expect(measuredDuration).toBeGreaterThanOrEqual(0);
+      expect(measuredDuration).toBeLessThan(100); // Should be very fast
+      expect(callArgs.startTime).toBeLessThanOrEqual(callArgs.endTime);
     });
   });
 

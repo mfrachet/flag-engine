@@ -2,13 +2,16 @@ import { evaluateFlag } from "./evaluateFlag";
 import {
   EvaluationMachine,
   FlagDict,
+  FlagEngineOptions,
   FlagsConfiguration,
   UserConfiguration,
 } from "./types";
+import { getHighResTime } from "./utils";
 
 const createUserContext = (
   flagsConfig: FlagsConfiguration,
-  userConfiguration: UserConfiguration
+  userConfiguration: UserConfiguration,
+  options?: FlagEngineOptions
 ) => {
   let _userConfiguration: UserConfiguration = userConfiguration;
 
@@ -17,7 +20,22 @@ const createUserContext = (
     if (!flagConfig) return false;
     if (flagConfig.status === "disabled") return false;
 
-    return evaluateFlag(flagConfig, _userConfiguration);
+    const startTime = getHighResTime();
+    const result = evaluateFlag(flagConfig, _userConfiguration);
+    const endTime = getHighResTime();
+
+    if (options?.onFlagEvaluated) {
+      options.onFlagEvaluated({
+        flagKey,
+        evaluationResult: result,
+        startTime,
+        endTime,
+        duration: endTime - startTime,
+        flagConfig,
+        userConfig: _userConfiguration,
+      });
+    }
+    return result;
   };
 
   const evaluateAll = () => {
@@ -41,11 +59,12 @@ const createUserContext = (
 };
 
 export const createFlagEngine = (
-  flagsConfig: FlagsConfiguration
+  flagsConfig: FlagsConfiguration,
+  options?: FlagEngineOptions
 ): EvaluationMachine => {
   return {
     createUserContext: (userConfiguration: UserConfiguration) =>
-      createUserContext(flagsConfig, userConfiguration),
+      createUserContext(flagsConfig, userConfiguration, options),
   };
 };
 
