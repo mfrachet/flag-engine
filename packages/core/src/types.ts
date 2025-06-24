@@ -57,7 +57,21 @@ export type UserConfiguration = {
   [key: string]: RuleValuePrimitive;
 };
 
+export type OnFlagEvaluatedCallback = ({
+  flagKey,
+  evaluationResult,
+}: {
+  flagKey: string;
+  evaluationResult: boolean | string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}) => void | Promise<void>;
+
 export type FlagsConfiguration = Array<FlagConfiguration>;
+export type FlagEngineOptions = {
+  onFlagEvaluated?: OnFlagEvaluatedCallback;
+};
 
 export type FlagDict = Record<string, string | boolean>;
 
