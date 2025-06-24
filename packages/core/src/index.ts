@@ -31,6 +31,8 @@ const createUserContext = (
         startTime,
         endTime,
         duration: endTime - startTime,
+        flagConfig,
+        userConfig: _userConfiguration,
       });
     }
     return result;

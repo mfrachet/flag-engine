@@ -101,6 +101,8 @@ describe("api", () => {
           startTime: expect.any(Number),
           endTime: expect.any(Number),
           duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "yo" },
         })
       );
 
@@ -145,6 +147,8 @@ describe("api", () => {
           startTime: expect.any(Number),
           endTime: expect.any(Number),
           duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "different-user" },
         })
       );
     });
@@ -194,6 +198,8 @@ describe("api", () => {
           startTime: expect.any(Number),
           endTime: expect.any(Number),
           duration: expect.any(Number),
+          flagConfig: flagsConfig[0],
+          userConfig: { __id: "marvin" },
         })
       );
     });
