@@ -29,7 +29,7 @@ const flushEvents = () => {
   // Reset the buffer when it's mapped to the payloads object so that we can continue feeding it
   eventsBuffer = [];
 
-  return fetch(`${endpoint}/sdk/${bSixtyFour}`, {
+  return fetch(`${endpoint}/api/v1/events/${bSixtyFour}`, {
     method: "POST",
     body: JSON.stringify(payloads),
     headers: { "Content-Type": "application/json" },
