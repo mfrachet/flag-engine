@@ -2,6 +2,7 @@ import { useCopilotAction } from "@copilotkit/react-core";
 import { useEffect, useMemo, useState } from "react";
 import { createFlagEngine } from "@flag-engine/core";
 import { stringToColor } from "../utils/stringToColor";
+import { Spinner } from "../components/Spinner";
 
 export const useRunExperiment = () => {
   useCopilotAction({
@@ -36,11 +37,19 @@ const RunExperiment = ({
   }, []);
 
   if (sample.length === 0) {
-    return <div>Sampling data...</div>;
+    return (
+      <div className="flex items-center gap-2">
+        <Spinner /> Sampling data...
+      </div>
+    );
   }
 
   if (status !== "complete") {
-    return <div>Preparing the experiment...</div>;
+    return (
+      <div className="flex items-center gap-2">
+        <Spinner /> Preparing the experiment...
+      </div>
+    );
   }
 
   return (
@@ -59,21 +68,26 @@ const ExperimentReady = ({
 }) => {
   const engine = createFlagEngine(config);
 
-  const memoizedResults = useMemo(() => {
+  const { results: memoizedResults, totalDuration } = useMemo(() => {
     const results: Record<string, number> = {};
+    let totalDuration = 0;
 
     for (const item of sample) {
+      const startTime = performance.now();
       const userCtx = engine.createUserContext({ ...userConfig, __id: item });
       const result = String(userCtx.evaluate(config[0].key));
+      const endTime = performance.now();
+      const duration = endTime - startTime;
 
       if (!results[result]) {
         results[result] = 0;
       }
 
+      totalDuration += duration;
       results[result]++;
     }
 
-    return results;
+    return { results, totalDuration };
   }, []);
 
   const values = Object.values(memoizedResults);
@@ -92,7 +106,13 @@ const ExperimentReady = ({
         {JSON.stringify(userConfigWithoutId, null, 2)}
       </pre>
 
-      <h3 className="font-bold pt-8 pb-2">Results</h3>
+      <h3 className="font-bold pt-8 pb-2">
+        Results{" "}
+        <span className="text-xs text-gray-500">
+          (total duration: {totalDuration.toFixed(2)}ms. per flag:{" "}
+          {(totalDuration / sample.length).toFixed(5)}ms)
+        </span>
+      </h3>
 
       <div className="flex gap-2">
         {values.map((value, index) => {

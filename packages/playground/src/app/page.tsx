@@ -13,9 +13,10 @@ export default function Home() {
 
       <div className="max-w-xl w-full mx-auto overflow-scroll rounded-3xl border border-gray-200 shadow-lg bg-white">
         <CopilotChat
+          
           labels={{
             title: "Your Assistant",
-            initial: "Hi! 👋 How can I assist you today?",
+            initial: "Hi! 👋 In the mood of playing with feature flags?",
           }}
         />
       </div>
