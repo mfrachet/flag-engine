@@ -1,6 +1,7 @@
 import { useCopilotAction } from "@copilotkit/react-core";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFlagEngine } from "@flag-engine/core";
+import { stringToColor } from "../utils/stringToColor";
 
 export const useRunExperiment = () => {
   useCopilotAction({
@@ -57,18 +58,74 @@ const ExperimentReady = ({
   userConfig: any;
 }) => {
   const engine = createFlagEngine(config);
-  const results: Record<string, number> = {};
 
-  for (const item of sample) {
-    const userCtx = engine.createUserContext({ ...userConfig, __id: item });
-    const result = String(userCtx.evaluate(config[0].key));
+  const memoizedResults = useMemo(() => {
+    const results: Record<string, number> = {};
 
-    if (!results[result]) {
-      results[result] = 0;
+    for (const item of sample) {
+      const userCtx = engine.createUserContext({ ...userConfig, __id: item });
+      const result = String(userCtx.evaluate(config[0].key));
+
+      if (!results[result]) {
+        results[result] = 0;
+      }
+
+      results[result]++;
     }
 
-    results[result]++;
-  }
+    return results;
+  }, []);
 
-  return <div>Result is here: {JSON.stringify(results, null, 2)}</div>;
+  const values = Object.values(memoizedResults);
+  const keys = Object.keys(memoizedResults);
+  const userConfigWithoutId = { ...userConfig };
+  delete userConfigWithoutId.__id;
+
+  return (
+    <div className="rounded-lg bg-gray-50 p-4">
+      <h2 className="text-lg font-bold">Running experiment</h2>
+      <p className="pb-2">
+        Experiment has been run on {sample.length} fixtures with the following
+        user configuration
+      </p>
+      <pre className="copilotKitCodeBlock p-2 text-white">
+        {JSON.stringify(userConfigWithoutId, null, 2)}
+      </pre>
+
+      <h3 className="font-bold pt-8 pb-2">Results</h3>
+
+      <div className="flex gap-2">
+        {values.map((value, index) => {
+          const key = keys[index];
+          const percentage = (value / sample.length) * 100;
+          return (
+            <div key={index} style={{ width: `${100 / values.length}%` }}>
+              <div className="relative bg-gray-200 rounded-t-xl overflow-hidden w-full h-32">
+                <div
+                  className="absolute w-full bottom-0 flex flex-col items-center justify-center"
+                  style={{
+                    height: `${percentage}%`,
+                    backgroundColor: stringToColor(key, 80),
+                    color: stringToColor(key, 10),
+                  }}
+                >
+                  {value}
+                  <span className="text-xs">({percentage.toFixed(2)}%)</span>
+                </div>
+              </div>
+
+              <div
+                className="text-center text-xs pt-1"
+                style={{
+                  color: stringToColor(key, 10),
+                }}
+              >
+                {key}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 };
