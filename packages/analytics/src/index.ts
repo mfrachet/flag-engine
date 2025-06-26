@@ -33,7 +33,11 @@ const flushEvents = () => {
     method: "POST",
     body: JSON.stringify(payloads),
     headers: { "Content-Type": "application/json" },
-  }).then((res) => res.json());
+  })
+    .then((res) => res.json())
+    .catch(() => {
+      // Expected silent fail
+    });
 };
 
 setInterval(() => {
@@ -57,5 +61,3 @@ const trackPageView = () => track("Page View");
 setupNavigationListeners(trackPageView);
 setupQualitativeTracking(track, flushEvents);
 trackPageView();
-
-(window as any).track = track;

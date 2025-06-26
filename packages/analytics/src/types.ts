@@ -2,7 +2,7 @@ export interface TrackOpts {
   posX?: number;
   posY?: number;
   selector?: string;
-  data?: any;
+  data?: string;
 }
 
 export type TrackFn = (eventName: string, opts?: TrackOpts) => Promise<void>;

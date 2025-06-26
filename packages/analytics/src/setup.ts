@@ -10,10 +10,6 @@ export const setup = () => {
     );
   }
 
-  const fields = {
-    clientKey: clientKey,
-  };
-
-  const bSixtyFour = btoa(JSON.stringify(fields));
+  const bSixtyFour = btoa(clientKey);
   return { endpoint, bSixtyFour };
 };

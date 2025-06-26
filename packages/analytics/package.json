@@ -6,9 +6,6 @@
     "build": "rollup -c rollup.config.mjs",
     "build:dev": "pnpm run build -- --environment BUILD:development"
   },
-  "dependencies": {
-    "@progressively/types": "^1.0.0"
-  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
