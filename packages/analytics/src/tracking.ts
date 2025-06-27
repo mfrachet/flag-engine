@@ -12,7 +12,16 @@ export const makeTracker = ({
   bSixtyFour: string;
 }) => {
   const track: TrackFn = (eventName, opts = {}) => {
-    eventsBuffer.push({ name: eventName, opts });
+    eventsBuffer.push({
+      name: eventName,
+      opts,
+      currentPage: {
+        url: window.location.href,
+        referer: window.document.referrer || undefined,
+        viewportWidth: window.innerWidth,
+        viewportHeight: document.documentElement.scrollHeight,
+      },
+    });
 
     if (eventsBuffer.length >= MAX_BATCH_SIZE) {
       flushEvents();
@@ -24,10 +33,10 @@ export const makeTracker = ({
   const flushEvents = () => {
     const payloads = eventsBuffer.map((ev) => ({
       name: ev.name,
-      url: window.location.href,
-      referer: window.document.referrer || undefined,
-      viewportWidth: window.innerWidth,
-      viewportHeight: document.documentElement.scrollHeight,
+      url: ev.currentPage.url,
+      referer: ev.currentPage.referer,
+      viewportWidth: ev.currentPage.viewportWidth,
+      viewportHeight: ev.currentPage.viewportHeight,
       posX: ev.opts?.posX,
       posY: ev.opts?.posY,
       selector: ev.opts?.selector,
