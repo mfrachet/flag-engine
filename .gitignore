@@ -34,3 +34,4 @@ lerna-debug.log*
 .netlify
 websites/frontend/app/styles/app.css
 .claude
+.vscode
