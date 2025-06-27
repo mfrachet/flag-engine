@@ -1,6 +1,6 @@
 export const setup = () => {
   const scriptEl = window.document.currentScript;
-  const endpoint = process.env.API_ENDPOINT;
+  const endpoint = process.env.API_ENDPOINT!;
 
   const clientKey = scriptEl?.getAttribute("data-client-key");
 
