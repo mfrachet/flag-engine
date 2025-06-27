@@ -9,6 +9,19 @@
 	"compatibility_date": "2025-06-27",
 	"observability": {
 		"enabled": true
+	},
+	"queues": {
+		"consumers": [
+			{
+				"queue": "analytics-queue"
+			}
+		],
+		"producers": [
+			{
+				"binding": "ANALYTICS-QUEUE",
+				"queue": "analytics-queue"
+			}
+		]
 	}
 	/**
 	 * Smart Placement
