@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "build": "rollup -c rollup.config.mjs",
-    "build:dev": "pnpm run build -- --environment BUILD:development"
+    "build:dev": "pnpm run build -- --environment BUILD:development",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
@@ -13,8 +16,12 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.3",
     "@types/node": "^24.0.4",
+    "@vitest/ui": "^3.2.4",
     "dotenv": "^16.5.0",
+    "happy-dom": "^18.0.1",
+    "jsdom": "^26.1.0",
     "rollup": "^4.44.1",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "vitest": "^3.2.4"
   }
 }
