@@ -3,13 +3,16 @@ import terser from "@rollup/plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
+import fs from "node:fs";
 import "dotenv/config";
+
+const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 
 export default () => {
   return {
     input: "src/index.ts",
     output: {
-      file: "dist/progressively.min.js",
+      file: `dist/flag-engine-analytics-${packageJson.version}.min.js`,
       format: "iife",
     },
     plugins: [
