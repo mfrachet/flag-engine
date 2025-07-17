@@ -1,0 +1,21 @@
+{
+  "name": "flag-engine",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "packageManager": "pnpm@10.12.2",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "bundlesize": "turbo bundlesize",
+    "ci": "CI=true turbo run lint test bundlesize"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "turbo": "^2.5.4"
+  }
+}

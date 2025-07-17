@@ -1,0 +1,58 @@
+{
+  "name": "@flag-engine/core",
+  "private": false,
+  "version": "0.0.9",
+  "description": "Feature flags evaluation engine, runtime agnostic",
+  "type": "module",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist .turbo && rollup -c rollup.config.mjs",
+    "start": "tsx src/index.ts",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "size": "bundlesize"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.3",
+    "@types/eslint__js": "^9.14.0",
+    "@types/murmurhash-js": "^1.0.6",
+    "@vitest/coverage-v8": "3.2.4",
+    "bundlesize": "^0.18.2",
+    "eslint": "^9.29.0",
+    "rollup": "^4.44.0",
+    "tslib": "^2.8.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.34.1",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "murmurhash-js": "^1.0.0"
+  },
+  "bundlesize": [
+    {
+      "path": "./dist/index.mjs",
+      "maxSize": "1.3 kB"
+    },
+    {
+      "path": "./dist/index.cjs.js",
+      "maxSize": "1.3 kB"
+    }
+  ]
+}
