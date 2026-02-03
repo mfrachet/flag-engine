@@ -4,15 +4,16 @@ import {
   FlagDict,
   FlagsConfiguration,
   UserConfiguration,
+  UserContextFlagEvaluation,
 } from "./types";
 
 const createUserContext = (
   flagsConfig: FlagsConfiguration,
   userConfiguration: UserConfiguration
-) => {
+): UserContextFlagEvaluation => {
   let _userConfiguration: UserConfiguration = userConfiguration;
 
-  const evaluate = (flagKey: string) => {
+  const evaluate = (flagKey: string): string | boolean => {
     const flagConfig = flagsConfig.find((f) => f.key === flagKey);
     if (!flagConfig) return false;
     if (flagConfig.status === "disabled") return false;
@@ -20,7 +21,7 @@ const createUserContext = (
     return evaluateFlag(flagConfig, _userConfiguration);
   };
 
-  const evaluateAll = () => {
+  const evaluateAll = (): FlagDict => {
     const flagDict: FlagDict = {};
 
     for (const flagConfig of flagsConfig) {
@@ -40,6 +41,19 @@ const createUserContext = (
   return { evaluateAll, evaluate, setUserConfiguration };
 };
 
+/**
+ * Creates a feature flag evaluation engine.
+ *
+ * @param flagsConfig - Array of flag configurations with strategies and variants
+ * @returns An evaluation machine that can create user contexts for flag evaluation
+ *
+ * @example
+ * ```ts
+ * const engine = createFlagEngine(flagsConfig);
+ * const userContext = engine.createUserContext({ __id: 'user-123', plan: 'premium' });
+ * const isEnabled = userContext.evaluate('my-feature');
+ * ```
+ */
 export const createFlagEngine = (
   flagsConfig: FlagsConfiguration
 ): EvaluationMachine => {
