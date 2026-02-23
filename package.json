@@ -2,7 +2,6 @@
   "name": "flag-engine",
   "version": "1.0.0",
   "description": "",
-  "private": true,
   "packageManager": "pnpm@10.12.2",
   "scripts": {
     "dev": "turbo dev",
