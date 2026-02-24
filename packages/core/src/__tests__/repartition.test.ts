@@ -172,4 +172,48 @@ describe("repartition", () => {
     expect(D).toBeGreaterThan(lowerDBound);
     expect(D).toBeLessThan(upperDBound);
   });
+
+  it("should distribute a single variant at 50% with the rest receiving false", () => {
+    const engine = createFlagEngine([
+      {
+        key: "single-variant-flag",
+        status: "enabled",
+        strategies: [
+          {
+            name: "All audience",
+            rules: [],
+            variants: [
+              {
+                name: "activated",
+                percent: 50,
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+
+    const COUNT = 1000_000;
+    let activated = 0;
+    let notActivated = 0;
+
+    for (let i = 0; i < COUNT; i++) {
+      const userCtx = engine.createUserContext({ __id: `user-${i}` });
+      const variant = userCtx.evaluate("single-variant-flag");
+      if (variant === "activated") {
+        activated++;
+      } else if (variant === false) {
+        notActivated++;
+      }
+    }
+
+    const halfCount = COUNT / 2;
+    const upperBound = halfCount * 1.001;
+    const lowerBound = halfCount * 0.999;
+
+    expect(activated).toBeGreaterThan(lowerBound);
+    expect(activated).toBeLessThan(upperBound);
+    expect(notActivated).toBeGreaterThan(lowerBound);
+    expect(notActivated).toBeLessThan(upperBound);
+  });
 });
