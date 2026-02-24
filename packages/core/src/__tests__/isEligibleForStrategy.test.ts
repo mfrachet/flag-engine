@@ -294,6 +294,72 @@ describe("isEligibleForStrategy", () => {
     }
   );
 
+  it("not_contains returns true when the field is missing from user configuration", () => {
+    const rules: Rule[] = [
+      {
+        operator: "not_contains",
+        field: "email",
+        value: "@competitor.com",
+      },
+    ];
+
+    const userConfiguration: UserConfiguration = {
+      __id: "yo",
+    };
+
+    expect(isEligibleForStrategy(rules, userConfiguration)).toBe(true);
+  });
+
+  it("not_contains returns true when the field is a non-string value", () => {
+    const rules: Rule[] = [
+      {
+        operator: "not_contains",
+        field: "email",
+        value: "@competitor.com",
+      },
+    ];
+
+    const userConfiguration: UserConfiguration = {
+      __id: "yo",
+      email: 42,
+    };
+
+    expect(isEligibleForStrategy(rules, userConfiguration)).toBe(true);
+  });
+
+  it("not_contains returns false when the rule value is not a string", () => {
+    const rules: Rule[] = [
+      {
+        operator: "not_contains",
+        field: "email",
+        value: 123,
+      },
+    ];
+
+    const userConfiguration: UserConfiguration = {
+      __id: "yo",
+      email: "test@example.com",
+    };
+
+    expect(isEligibleForStrategy(rules, userConfiguration)).toBe(false);
+  });
+
+  it("not_in returns true when the field is missing from user configuration", () => {
+    const rules: Rule[] = [
+      {
+        operator: "not_in",
+        field: "country",
+        value: ["US", "UK"],
+      },
+    ];
+
+    const userConfiguration: UserConfiguration = {
+      __id: "yo",
+    };
+
+    expect(isEligibleForStrategy(rules, userConfiguration)).toBe(true);
+  });
+
   it.each([
     [2, [1, 2, 3], false],
     [4, [1, 2, 3], true],
@@ -330,4 +396,58 @@ describe("isEligibleForStrategy", () => {
       expect(isEligibleForStrategy(rules, userConfiguration)).toBe(expected);
     }
   );
+
+  describe("segment depth protection", () => {
+    const buildNestedSegment = (depth: number): Rule => {
+      let innermost: Rule = {
+        field: "country",
+        operator: "equals",
+        value: "FR",
+      };
+
+      for (let i = 0; i < depth; i++) {
+        innermost = {
+          inSegment: {
+            name: `segment-${i}`,
+            rules: [innermost],
+          },
+        };
+      }
+
+      return innermost;
+    };
+
+    it("returns false when segment nesting exceeds MAX_SEGMENT_DEPTH (10)", () => {
+      const deepRule = buildNestedSegment(11);
+
+      const userConfiguration: UserConfiguration = {
+        __id: "yo",
+        country: "FR",
+      };
+
+      expect(isEligibleForStrategy([deepRule], userConfiguration)).toBe(false);
+    });
+
+    it("returns true when segment nesting is exactly at MAX_SEGMENT_DEPTH (10)", () => {
+      const deepRule = buildNestedSegment(10);
+
+      const userConfiguration: UserConfiguration = {
+        __id: "yo",
+        country: "FR",
+      };
+
+      expect(isEligibleForStrategy([deepRule], userConfiguration)).toBe(true);
+    });
+
+    it("returns false when segment nesting is at MAX_SEGMENT_DEPTH but rule doesn't match", () => {
+      const deepRule = buildNestedSegment(10);
+
+      const userConfiguration: UserConfiguration = {
+        __id: "yo",
+        country: "US",
+      };
+
+      expect(isEligibleForStrategy([deepRule], userConfiguration)).toBe(false);
+    });
+  });
 });

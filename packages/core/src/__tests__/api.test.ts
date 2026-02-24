@@ -34,6 +34,23 @@ describe("api", () => {
     });
   });
 
+  describe("evaluate and evaluateAll consistency", () => {
+    it("both return false for an invalid status value", () => {
+      const flagsConfig = [
+        {
+          key: "new-homepage",
+          status: "enbaled" as FlagsConfiguration[number]["status"],
+          strategies: [],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({ __id: "yo" });
+      expect(userCtx.evaluate("new-homepage")).toEqual(false);
+      expect(userCtx.evaluateAll()).toEqual({ "new-homepage": false });
+    });
+  });
+
   describe("evaluate", () => {
     it("returns false when the flag does not exist", () => {
       const flagsConfig: FlagsConfiguration = [
