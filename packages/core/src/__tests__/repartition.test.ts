@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createFlagEngine } from "..";
 
 describe("repartition", () => {
-  it("should be distributive", () => {
+  it("should distribute 50/50 across 1M users", () => {
     const engine = createFlagEngine([
       {
         key: "summer-sale",
@@ -49,7 +49,7 @@ describe("repartition", () => {
     expect(B).toBeLessThan(halfCountUpper);
   });
 
-  it("should be distributive", () => {
+  it("should distribute 50/50 across 10M users with tighter tolerance", () => {
     const engine = createFlagEngine([
       {
         key: "summer-sale",
@@ -96,7 +96,7 @@ describe("repartition", () => {
     expect(B).toBeLessThan(halfCountUpper);
   });
 
-  it("should be distributive", () => {
+  it("should distribute 10/20/30/40 across four variants", () => {
     const engine = createFlagEngine([
       {
         key: "summer-sale",

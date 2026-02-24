@@ -76,11 +76,9 @@ export const isEligibleForStrategy = (
       case "not_contains": {
         const fieldValue = userConfiguration[rule.field];
 
-        return (
-          isString(fieldValue) &&
-          isString(rule.value) &&
-          !fieldValue.includes(rule.value)
-        );
+        if (!isString(rule.value)) return false;
+        if (!isString(fieldValue)) return true;
+        return !fieldValue.includes(rule.value);
       }
 
       case "in": {
@@ -94,9 +92,8 @@ export const isEligibleForStrategy = (
       case "not_in": {
         const fieldValue = userConfiguration[rule.field];
 
-        return (
-          Array.isArray(rule.value) && rule.value.indexOf(fieldValue) === -1
-        );
+        if (!Array.isArray(rule.value)) return false;
+        return rule.value.indexOf(fieldValue) === -1;
       }
 
       default:

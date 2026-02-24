@@ -16,7 +16,7 @@ const createUserContext = (
   const evaluate = (flagKey: string): string | boolean => {
     const flagConfig = flagsConfig.find((f) => f.key === flagKey);
     if (!flagConfig) return false;
-    if (flagConfig.status === "disabled") return false;
+    if (flagConfig.status !== "enabled") return false;
 
     return evaluateFlag(flagConfig, _userConfiguration);
   };
