@@ -310,6 +310,258 @@ describe("isEligibleForStrategy", () => {
     expect(isEligibleForStrategy(rules, userConfiguration)).toBe(true);
   });
 
+  describe("missing field from user configuration", () => {
+    it("equals returns false when field is missing", () => {
+      const rules: Rule[] = [
+        { operator: "equals", field: "country", value: ["FR"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(false);
+    });
+
+    it("not_equals returns true when field is missing (undefined not in array)", () => {
+      const rules: Rule[] = [
+        { operator: "not_equals", field: "country", value: ["FR"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(true);
+    });
+
+    it("greater_than returns false when field is missing", () => {
+      const rules: Rule[] = [
+        { operator: "greater_than", field: "age", value: 18 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(false);
+    });
+
+    it("less_than returns false when field is missing", () => {
+      const rules: Rule[] = [
+        { operator: "less_than", field: "age", value: 18 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(false);
+    });
+
+    it("contains returns false when field is missing", () => {
+      const rules: Rule[] = [
+        { operator: "contains", field: "email", value: ["@example.com"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(false);
+    });
+  });
+
+  describe("multiple rules (AND semantics)", () => {
+    it("returns true when all rules match", () => {
+      const rules: Rule[] = [
+        { operator: "equals", field: "country", value: ["FR"] },
+        { operator: "contains", field: "email", value: ["@example.com"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          email: "test@example.com",
+        })
+      ).toBe(true);
+    });
+
+    it("returns false when first rule matches but second does not", () => {
+      const rules: Rule[] = [
+        { operator: "equals", field: "country", value: ["FR"] },
+        { operator: "contains", field: "email", value: ["@competitor.com"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          email: "test@example.com",
+        })
+      ).toBe(false);
+    });
+
+    it("returns false when no rules match", () => {
+      const rules: Rule[] = [
+        { operator: "equals", field: "country", value: ["US"] },
+        { operator: "greater_than", field: "age", value: 30 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          age: 25,
+        })
+      ).toBe(false);
+    });
+
+    it("returns true with mixed operator types all matching", () => {
+      const rules: Rule[] = [
+        { operator: "equals", field: "country", value: ["FR", "US"] },
+        { operator: "greater_than", field: "age", value: 18 },
+        { operator: "contains", field: "email", value: ["@company.com"] },
+        { operator: "not_equals", field: "role", value: ["banned"] },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          age: 25,
+          email: "user@company.com",
+          role: "admin",
+        })
+      ).toBe(true);
+    });
+  });
+
+  describe("segment edge cases", () => {
+    it("segment with empty rules returns true", () => {
+      const rules: Rule[] = [
+        {
+          inSegment: {
+            name: "everyone",
+            rules: [],
+          },
+        },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo" })
+      ).toBe(true);
+    });
+
+    it("mixed segment and field rules (both match)", () => {
+      const rules: Rule[] = [
+        {
+          inSegment: {
+            name: "french-segment",
+            rules: [
+              { field: "country", operator: "equals", value: ["FR"] },
+            ],
+          },
+        },
+        { operator: "greater_than", field: "age", value: 18 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          age: 25,
+        })
+      ).toBe(true);
+    });
+
+    it("mixed segment and field rules (segment fails)", () => {
+      const rules: Rule[] = [
+        {
+          inSegment: {
+            name: "french-segment",
+            rules: [
+              { field: "country", operator: "equals", value: ["FR"] },
+            ],
+          },
+        },
+        { operator: "greater_than", field: "age", value: 18 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "US",
+          age: 25,
+        })
+      ).toBe(false);
+    });
+
+    it("mixed segment and field rules (field rule fails)", () => {
+      const rules: Rule[] = [
+        {
+          inSegment: {
+            name: "french-segment",
+            rules: [
+              { field: "country", operator: "equals", value: ["FR"] },
+            ],
+          },
+        },
+        { operator: "greater_than", field: "age", value: 18 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          country: "FR",
+          age: 15,
+        })
+      ).toBe(false);
+    });
+
+    it("segment that does not match user", () => {
+      const rules: Rule[] = [
+        {
+          inSegment: {
+            name: "beta-testers",
+            rules: [
+              { field: "email", operator: "contains", value: ["@internal.com"] },
+            ],
+          },
+        },
+      ];
+      expect(
+        isEligibleForStrategy(rules, {
+          __id: "yo",
+          email: "user@external.com",
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe("greater_than / less_than edge cases", () => {
+    it("greater_than with Infinity", () => {
+      const rules: Rule[] = [
+        { operator: "greater_than", field: "score", value: 100 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", score: Infinity })
+      ).toBe(true);
+    });
+
+    it("less_than with -Infinity", () => {
+      const rules: Rule[] = [
+        { operator: "less_than", field: "score", value: 0 },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", score: -Infinity })
+      ).toBe(true);
+    });
+
+    it("greater_than with Infinity as rule value", () => {
+      const rules: Rule[] = [
+        { operator: "greater_than", field: "score", value: Infinity },
+      ];
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", score: 999999 })
+      ).toBe(false);
+    });
+  });
+
+  describe("unknown operator at runtime", () => {
+    it("returns false for an unknown operator", () => {
+      const rules = [
+        {
+          operator: "starts_with" as "equals",
+          field: "name",
+          value: ["test"],
+        },
+      ] as Rule[];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", name: "test-user" })
+      ).toBe(false);
+    });
+  });
+
   describe("segment depth protection", () => {
     const buildNestedSegment = (depth: number): Rule => {
       let innermost: Rule = {

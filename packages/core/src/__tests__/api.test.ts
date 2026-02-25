@@ -555,4 +555,376 @@ describe("api", () => {
       expect(userCtx.evaluateAll()).toEqual({ "feature-flag-key": "B" });
     });
   });
+
+  describe("evaluate with strategies and variants", () => {
+    it("returns variant name when calling evaluate() with strategies", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "my-flag",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR"] },
+              ],
+              variants: [
+                { name: "A", percent: 50 },
+                { name: "B", percent: 50 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "Ab",
+        country: "FR",
+      });
+
+      const result = userCtx.evaluate("my-flag");
+      expect(typeof result).toBe("string");
+      expect(["A", "B"]).toContain(result);
+    });
+
+    it("returns true when calling evaluate() with eligible strategy but no variants", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "my-flag",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR"] },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      expect(userCtx.evaluate("my-flag")).toBe(true);
+    });
+
+    it("returns false when calling evaluate() with non-eligible strategy", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "my-flag",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                { field: "country", operator: "equals", value: ["US"] },
+              ],
+              variants: [{ name: "A", percent: 100 }],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      expect(userCtx.evaluate("my-flag")).toBe(false);
+    });
+  });
+
+  describe("multiple flags in evaluateAll", () => {
+    it("evaluates multiple flags returning a mix of true, false, and variants", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "flag-enabled-no-strategies",
+          status: "enabled",
+          strategies: [],
+        },
+        {
+          key: "flag-disabled",
+          status: "disabled",
+          strategies: [],
+        },
+        {
+          key: "flag-with-variants",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [],
+              variants: [
+                { name: "Control", percent: 50 },
+                { name: "Treatment", percent: 50 },
+              ],
+            },
+          ],
+        },
+        {
+          key: "flag-not-eligible",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                { field: "country", operator: "equals", value: ["US"] },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      const result = userCtx.evaluateAll();
+      expect(result["flag-enabled-no-strategies"]).toBe(true);
+      expect(result["flag-disabled"]).toBe(false);
+      expect(["Control", "Treatment"]).toContain(result["flag-with-variants"]);
+      expect(result["flag-not-eligible"]).toBe(false);
+    });
+  });
+
+  describe("setUserConfiguration with variant change", () => {
+    it("changes variant assignment when user switches to a different id", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "ab-test",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [],
+              variants: [
+                { name: "A", percent: 50 },
+                { name: "B", percent: 50 },
+              ],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({ __id: "user-A" });
+
+      const firstResult = userCtx.evaluate("ab-test");
+
+      // Change to a different user — may get a different variant
+      userCtx.setUserConfiguration({ __id: "user-B" });
+      const secondResult = userCtx.evaluate("ab-test");
+
+      // Both should be valid variants (we can't guarantee they differ, but they should be valid)
+      expect(["A", "B"]).toContain(firstResult);
+      expect(["A", "B"]).toContain(secondResult);
+    });
+
+    it("evaluateAll reflects new user configuration after setUserConfiguration", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "geo-flag",
+          status: "enabled",
+          strategies: [
+            {
+              name: "french-only",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR"] },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      expect(userCtx.evaluateAll()).toEqual({ "geo-flag": true });
+
+      userCtx.setUserConfiguration({ __id: "user-1", country: "US" });
+      expect(userCtx.evaluateAll()).toEqual({ "geo-flag": false });
+    });
+  });
+
+  describe("edge cases", () => {
+    it("handles empty flags configuration", () => {
+      const engine = createFlagEngine([]);
+      const userCtx = engine.createUserContext({ __id: "user-1" });
+
+      expect(userCtx.evaluateAll()).toEqual({});
+      expect(userCtx.evaluate("non-existent")).toBe(false);
+    });
+
+    it("returns false for disabled flag even with matching strategies", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "my-flag",
+          status: "disabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR"] },
+              ],
+              variants: [{ name: "A", percent: 100 }],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      expect(userCtx.evaluate("my-flag")).toBe(false);
+      expect(userCtx.evaluateAll()).toEqual({ "my-flag": false });
+    });
+
+    it("handles three or more strategies (first match semantics)", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "multi-strategy",
+          status: "enabled",
+          strategies: [
+            {
+              name: "first",
+              rules: [
+                { field: "country", operator: "equals", value: ["US"] },
+              ],
+              variants: [{ name: "FromFirst", percent: 100 }],
+            },
+            {
+              name: "second",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR"] },
+              ],
+              variants: [{ name: "FromSecond", percent: 100 }],
+            },
+            {
+              name: "third",
+              rules: [
+                { field: "country", operator: "equals", value: ["FR", "US"] },
+              ],
+              variants: [{ name: "FromThird", percent: 100 }],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+      });
+
+      // Second strategy matches first (FR), third also matches but second wins
+      expect(userCtx.evaluate("multi-strategy")).toBe("FromSecond");
+    });
+
+    it("segment rule that does not match the user", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "segment-flag",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                {
+                  inSegment: {
+                    name: "internal-users",
+                    rules: [
+                      {
+                        field: "email",
+                        operator: "contains",
+                        value: ["@internal.com"],
+                      },
+                    ],
+                  },
+                },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+      const userCtx = engine.createUserContext({
+        __id: "user-1",
+        email: "user@external.com",
+      });
+
+      expect(userCtx.evaluate("segment-flag")).toBe(false);
+      expect(userCtx.evaluateAll()).toEqual({ "segment-flag": false });
+    });
+
+    it("mixed segment and non-segment rules in same strategy", () => {
+      const flagsConfig: FlagsConfiguration = [
+        {
+          key: "mixed-rules",
+          status: "enabled",
+          strategies: [
+            {
+              name: "default",
+              rules: [
+                {
+                  inSegment: {
+                    name: "french-segment",
+                    rules: [
+                      {
+                        field: "country",
+                        operator: "equals",
+                        value: ["FR"],
+                      },
+                    ],
+                  },
+                },
+                {
+                  field: "age",
+                  operator: "greater_than",
+                  value: 18,
+                },
+              ],
+              variants: [],
+            },
+          ],
+        },
+      ];
+
+      const engine = createFlagEngine(flagsConfig);
+
+      // Both match
+      const ctx1 = engine.createUserContext({
+        __id: "user-1",
+        country: "FR",
+        age: 25,
+      });
+      expect(ctx1.evaluate("mixed-rules")).toBe(true);
+
+      // Segment matches, age doesn't
+      const ctx2 = engine.createUserContext({
+        __id: "user-2",
+        country: "FR",
+        age: 15,
+      });
+      expect(ctx2.evaluate("mixed-rules")).toBe(false);
+    });
+  });
 });
