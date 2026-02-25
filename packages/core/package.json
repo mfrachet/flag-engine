@@ -1,7 +1,7 @@
 {
   "name": "@flag-engine/core",
   "private": false,
-  "version": "0.0.11",
+  "version": "1.0.0",
   "description": "Feature flags evaluation engine, runtime agnostic",
   "type": "module",
   "main": "./dist/index.cjs.js",
