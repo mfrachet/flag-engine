@@ -5,12 +5,6 @@ const MAX_SEGMENT_DEPTH = 10;
 const isString = (value: unknown): value is string => typeof value === "string";
 
 /**
- * Checks if a value is null or undefined.
- */
-const isNullish = (value: unknown): value is null | undefined =>
-  typeof value === "undefined" || value === null;
-
-/**
  * Evaluates whether a user matches all rules in a strategy.
  * Supports nested segment evaluation with cycle/depth protection.
  *
@@ -42,58 +36,39 @@ export const isEligibleForStrategy = (
 
     switch (rule.operator) {
       case "equals":
-        return userConfiguration[rule.field] === rule.value;
+        return rule.value.indexOf(userConfiguration[rule.field]) !== -1;
 
       case "not_equals":
-        return userConfiguration[rule.field] !== rule.value;
+        return rule.value.indexOf(userConfiguration[rule.field]) === -1;
 
       case "greater_than": {
         const fieldValue = userConfiguration[rule.field];
 
-        if (isNullish(fieldValue) || isNullish(rule.value)) return false;
+        if (typeof fieldValue !== "number") return false;
 
-        return fieldValue! > rule.value!;
+        return fieldValue > rule.value;
       }
 
       case "less_than": {
         const fieldValue = userConfiguration[rule.field];
 
-        if (isNullish(fieldValue) || isNullish(rule.value)) return false;
+        if (typeof fieldValue !== "number") return false;
 
-        return fieldValue! < rule.value!;
+        return fieldValue < rule.value;
       }
 
       case "contains": {
         const fieldValue = userConfiguration[rule.field];
 
-        return (
-          isString(fieldValue) &&
-          isString(rule.value) &&
-          fieldValue.includes(rule.value)
-        );
+        if (!isString(fieldValue)) return false;
+        return rule.value.some((v) => isString(v) && fieldValue.includes(v));
       }
 
       case "not_contains": {
         const fieldValue = userConfiguration[rule.field];
 
-        if (!isString(rule.value)) return false;
         if (!isString(fieldValue)) return true;
-        return !fieldValue.includes(rule.value);
-      }
-
-      case "in": {
-        const fieldValue = userConfiguration[rule.field];
-
-        return (
-          Array.isArray(rule.value) && rule.value.indexOf(fieldValue) !== -1
-        );
-      }
-
-      case "not_in": {
-        const fieldValue = userConfiguration[rule.field];
-
-        if (!Array.isArray(rule.value)) return false;
-        return rule.value.indexOf(fieldValue) === -1;
+        return rule.value.every((v) => !isString(v) || !fieldValue.includes(v));
       }
 
       default:

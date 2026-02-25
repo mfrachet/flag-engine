@@ -16,7 +16,7 @@ describe("api", () => {
                 {
                   field: "__id",
                   operator: "equals",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
               ],
               variants: [],
@@ -136,12 +136,12 @@ describe("api", () => {
                 {
                   field: "firstName",
                   operator: "contains",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
                 {
                   field: "lastName",
                   operator: "contains",
-                  value: "frachet",
+                  value: ["frachet"],
                 },
               ],
               variants: [],
@@ -152,7 +152,7 @@ describe("api", () => {
                 {
                   field: "country",
                   operator: "equals",
-                  value: "US",
+                  value: ["US"],
                 },
               ],
               variants: [],
@@ -184,12 +184,12 @@ describe("api", () => {
                 {
                   field: "firstName",
                   operator: "contains",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
                 {
                   field: "lastName",
                   operator: "contains",
-                  value: "frachet",
+                  value: ["frachet"],
                 },
               ],
               variants: [],
@@ -200,7 +200,7 @@ describe("api", () => {
                 {
                   field: "country",
                   operator: "equals",
-                  value: "US",
+                  value: ["US"],
                 },
               ],
               variants: [],
@@ -296,7 +296,7 @@ describe("api", () => {
                 {
                   field: "country",
                   operator: "equals",
-                  value: "US",
+                  value: ["US"],
                 },
               ],
               variants: [
@@ -316,12 +316,12 @@ describe("api", () => {
                 {
                   field: "firstName",
                   operator: "contains",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
                 {
                   field: "lastName",
                   operator: "contains",
-                  value: "frachet",
+                  value: ["frachet"],
                 },
               ],
               variants: [
@@ -362,7 +362,7 @@ describe("api", () => {
                 {
                   field: "country",
                   operator: "equals",
-                  value: "US",
+                  value: ["US"],
                 },
               ],
               variants: [
@@ -382,12 +382,12 @@ describe("api", () => {
                 {
                   field: "firstName",
                   operator: "contains",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
                 {
                   field: "lastName",
                   operator: "contains",
-                  value: "frachet",
+                  value: ["frachet"],
                 },
               ],
               variants: [
@@ -442,12 +442,12 @@ describe("api", () => {
                 {
                   field: "firstName",
                   operator: "contains",
-                  value: "marvin",
+                  value: ["marvin"],
                 },
                 {
                   field: "lastName",
                   operator: "contains",
-                  value: "frachet",
+                  value: ["frachet"],
                 },
               ],
               variants: [
@@ -492,7 +492,7 @@ describe("api", () => {
                       {
                         field: "country",
                         operator: "contains",
-                        value: "F",
+                        value: ["F"],
                       },
                     ],
                   },
@@ -528,7 +528,7 @@ describe("api", () => {
               rules: [
                 {
                   field: "country",
-                  operator: "in",
+                  operator: "equals",
                   value: ["France", "Spain"],
                 },
               ],

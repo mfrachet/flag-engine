@@ -5,9 +5,7 @@ export type ConditionOperator =
   | "contains"
   | "not_contains"
   | "greater_than"
-  | "less_than"
-  | "in"
-  | "not_in";
+  | "less_than";
 
 type RuleValuePrimitive =
   | object
@@ -18,13 +16,16 @@ type RuleValuePrimitive =
   | boolean
   | Date;
 
-export type RuleValue = RuleValuePrimitive | Array<RuleValuePrimitive>;
-
 export type Rule =
   | {
       field: string;
-      operator: ConditionOperator;
-      value: RuleValue;
+      operator: "equals" | "not_equals" | "contains" | "not_contains";
+      value: Array<RuleValuePrimitive>;
+    }
+  | {
+      field: string;
+      operator: "greater_than" | "less_than";
+      value: number;
     }
   | {
       inSegment: Segment;
