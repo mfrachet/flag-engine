@@ -3,9 +3,4 @@ description: "Install deps + dotenv setup"
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v2
-      name: Install Node 20
-      with:
-        node-version: "20"
-
     - uses: ./.github/actions/pnpm

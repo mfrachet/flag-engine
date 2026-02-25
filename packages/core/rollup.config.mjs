@@ -12,7 +12,7 @@ export default () => {
       {
         file: "dist/index.cjs.js",
         format: "cjs",
-        name: "ff-engine",
+        name: "flag-engine",
         globals,
       },
       {

@@ -1,7 +1,7 @@
 {
   "name": "flag-engine",
   "version": "1.0.0",
-  "description": "",
+  "description": "Feature flags evaluation engine, runtime agnostic with no remote services",
   "packageManager": "pnpm@10.12.2",
   "scripts": {
     "dev": "turbo dev",
@@ -11,9 +11,9 @@
     "bundlesize": "turbo bundlesize",
     "ci": "CI=true turbo run lint test bundlesize"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["feature-flags", "feature-toggles", "flags", "evaluation-engine"],
+  "author": "mfrachet",
+  "license": "MIT",
   "dependencies": {
     "turbo": "^2.5.4"
   }

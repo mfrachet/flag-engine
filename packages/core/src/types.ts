@@ -19,8 +19,13 @@ type RuleValuePrimitive =
 export type Rule =
   | {
       field: string;
-      operator: "equals" | "not_equals" | "contains" | "not_contains";
+      operator: "equals" | "not_equals";
       value: Array<RuleValuePrimitive>;
+    }
+  | {
+      field: string;
+      operator: "contains" | "not_contains";
+      value: Array<string>;
     }
   | {
       field: string;

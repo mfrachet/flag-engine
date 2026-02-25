@@ -20,7 +20,7 @@
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "size": "bundlesize"
+    "bundlesize": "bundlesize"
   },
   "keywords": [],
   "author": "",

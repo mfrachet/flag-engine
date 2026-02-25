@@ -3,11 +3,6 @@ description: "Handle caching and pnpm resolution"
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v2
-      name: Install Node 20
-      with:
-        node-version: "20"
-
     - uses: pnpm/action-setup@v4
       name: Install pnpm
       id: pnpm-install
@@ -20,7 +15,7 @@ runs:
       run: |
         echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       name: Setup pnpm cache
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}

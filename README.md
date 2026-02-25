@@ -102,6 +102,48 @@ This is useful if you want your QA team to test the feature behind the flag: you
 
 This is convenient for combining **and** and **or** logic and create complex conditional feature flags.
 
+### Operators
+
+Rules support the following operators:
+
+| Operator | Value type | Description |
+|---|---|---|
+| `equals` | `string[]` | User field matches **any** value in the array |
+| `not_equals` | `string[]` | User field matches **none** of the values in the array |
+| `contains` | `string[]` | User string field includes **any** of the substrings in the array |
+| `not_contains` | `string[]` | User string field includes **none** of the substrings in the array |
+| `greater_than` | `number` | User numeric field is greater than the value |
+| `less_than` | `number` | User numeric field is less than the value |
+
+### Segments
+
+Rules can also reference **segments** — reusable groups of rules that can be nested:
+
+```typescript
+{
+  inSegment: {
+    name: "beta-testers",
+    rules: [
+      { field: "email", operator: "contains", value: ["@mycompany.com"] },
+    ],
+  },
+}
+```
+
+Segments can be nested up to 10 levels deep (to prevent circular references).
+
+### Updating user context
+
+You can update the user configuration after creation using `setUserConfiguration()`:
+
+```typescript
+const userCtx = engine.createUserContext({ __id: "user-1", country: "France" });
+userCtx.evaluate("my-flag"); // evaluates with country: "France"
+
+userCtx.setUserConfiguration({ __id: "user-1", country: "Spain" });
+userCtx.evaluate("my-flag"); // evaluates with country: "Spain"
+```
+
 ## An exhaustive example
 
 I want to show my audience **2 variants** of a feature. Only the people living in `France` and `Spain` should see the feature.
@@ -119,7 +161,7 @@ const flagsConfig: FlagsConfiguration = [
         rules: [
           {
             field: "country",
-            operator: "in",
+            operator: "equals",
             value: ["France", "Spain"],
           },
         ],

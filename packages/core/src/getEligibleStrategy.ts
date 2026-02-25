@@ -61,14 +61,14 @@ export const isEligibleForStrategy = (
         const fieldValue = userConfiguration[rule.field];
 
         if (!isString(fieldValue)) return false;
-        return rule.value.some((v) => isString(v) && fieldValue.includes(v));
+        return rule.value.some((v) => fieldValue.includes(v));
       }
 
       case "not_contains": {
         const fieldValue = userConfiguration[rule.field];
 
         if (!isString(fieldValue)) return true;
-        return rule.value.every((v) => !isString(v) || !fieldValue.includes(v));
+        return rule.value.every((v) => !fieldValue.includes(v));
       }
 
       default:

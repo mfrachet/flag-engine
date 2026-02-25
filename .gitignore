@@ -24,12 +24,4 @@ lerna-debug.log*
 .env.development.local
 .env.test.local
 .env.production.local
-*/schema.prisma
-
 .turbo
-
-
-# tailwind generated styles on build
-.next
-.netlify
-websites/frontend/app/styles/app.css

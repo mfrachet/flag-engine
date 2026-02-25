@@ -33,7 +33,7 @@ describe("isEligibleForStrategy", () => {
         {
           operator: "equals",
           field: "country",
-          value: ruleValue as Rule extends { operator: "equals" } ? Rule["value"] : never,
+          value: ruleValue as Extract<Rule, { operator: "equals" }>["value"],
         },
       ];
 
@@ -75,7 +75,7 @@ describe("isEligibleForStrategy", () => {
         {
           operator: "not_equals",
           field: "country",
-          value: ruleValue as Rule extends { operator: "not_equals" } ? Rule["value"] : never,
+          value: ruleValue as Extract<Rule, { operator: "not_equals" }>["value"],
         },
       ];
 
