@@ -1,3 +1,4 @@
+import { eq as semverEq, gt as semverGt, lt as semverLt, valid as semverValid } from "semver";
 import { FlagConfiguration, Rule, Strategy, UserConfiguration } from "./types";
 
 const MAX_SEGMENT_DEPTH = 10;
@@ -153,6 +154,30 @@ export const isEligibleForStrategy = (
         const result = fieldValue % rule.value.divisor;
         if (isNaN(result)) return false;
         return result === rule.value.remainder;
+      }
+
+      case "semver_equal": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        if (!semverValid(fieldValue) || !semverValid(rule.value)) return false;
+        return semverEq(fieldValue, rule.value);
+      }
+
+      case "semver_greater_than": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        if (!semverValid(fieldValue) || !semverValid(rule.value)) return false;
+        return semverGt(fieldValue, rule.value);
+      }
+
+      case "semver_less_than": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        if (!semverValid(fieldValue) || !semverValid(rule.value)) return false;
+        return semverLt(fieldValue, rule.value);
       }
 
       default:

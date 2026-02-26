@@ -1031,6 +1031,205 @@ describe("isEligibleForStrategy", () => {
     ).toBe(false);
   });
 
+  // ── semver_equal ─────────────────────────────────────────────────────
+
+  it.each([
+    ["1.0.0", "1.0.0", true],
+    ["1.0.0", "2.0.0", false],
+    ["1.2.3", "1.2.3", true],
+    ["2.0.0", "1.0.0", false],
+    ["1.0.0-alpha", "1.0.0-alpha", true],
+    ["1.0.0-alpha", "1.0.0-beta", false],
+    ["1.0.0-alpha", "1.0.0", false],
+    ["1.0.0+build.1", "1.0.0+build.2", true], // build metadata ignored per semver spec
+    ["1.0.0+build.1", "1.0.0", true], // build metadata ignored
+    ["0.0.1", "0.0.1", true],
+    ["10.20.30", "10.20.30", true],
+    ["1.0.0-alpha.1", "1.0.0-alpha.1", true],
+    ["1.0.0-alpha.1", "1.0.0-alpha.2", false],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator semver_equal",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "semver_equal",
+          field: "version",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", version: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("semver_equal returns false for invalid user version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_equal", field: "version", value: "1.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "not-semver" })
+    ).toBe(false);
+  });
+
+  it("semver_equal returns false for invalid rule version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_equal", field: "version", value: "not-semver" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "1.0.0" })
+    ).toBe(false);
+  });
+
+  it("semver_equal returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "semver_equal", field: "version", value: "1.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: 100 })
+    ).toBe(false);
+  });
+
+  it("semver_equal returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "semver_equal", field: "version", value: "1.0.0" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── semver_greater_than ─────────────────────────────────────────────
+
+  it.each([
+    ["2.0.0", "1.0.0", true],
+    ["1.0.0", "2.0.0", false],
+    ["1.0.0", "1.0.0", false], // equal, not greater
+    ["1.1.0", "1.0.0", true], // minor bump
+    ["1.0.1", "1.0.0", true], // patch bump
+    ["1.0.0", "1.0.0-alpha", true], // release > prerelease
+    ["1.0.0-beta", "1.0.0-alpha", true], // prerelease ordering
+    ["1.0.0-alpha", "1.0.0-beta", false],
+    ["1.0.0-alpha.2", "1.0.0-alpha.1", true],
+    ["10.0.0", "9.99.99", true],
+    ["1.0.0+build.1", "1.0.0+build.2", false], // build metadata ignored, versions are equal
+    ["0.0.2", "0.0.1", true],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator semver_greater_than",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "semver_greater_than",
+          field: "version",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", version: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("semver_greater_than returns false for invalid user version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_greater_than", field: "version", value: "1.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "abc" })
+    ).toBe(false);
+  });
+
+  it("semver_greater_than returns false for invalid rule version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_greater_than", field: "version", value: "xyz" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "2.0.0" })
+    ).toBe(false);
+  });
+
+  it("semver_greater_than returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "semver_greater_than", field: "version", value: "1.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: 200 })
+    ).toBe(false);
+  });
+
+  it("semver_greater_than returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "semver_greater_than", field: "version", value: "1.0.0" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── semver_less_than ────────────────────────────────────────────────
+
+  it.each([
+    ["1.0.0", "2.0.0", true],
+    ["2.0.0", "1.0.0", false],
+    ["1.0.0", "1.0.0", false], // equal, not less
+    ["1.0.0", "1.1.0", true], // minor bump
+    ["1.0.0", "1.0.1", true], // patch bump
+    ["1.0.0-alpha", "1.0.0", true], // prerelease < release
+    ["1.0.0-alpha", "1.0.0-beta", true], // prerelease ordering
+    ["1.0.0-beta", "1.0.0-alpha", false],
+    ["1.0.0-alpha.1", "1.0.0-alpha.2", true],
+    ["9.99.99", "10.0.0", true],
+    ["1.0.0+build.1", "1.0.0+build.2", false], // build metadata ignored, versions are equal
+    ["0.0.1", "0.0.2", true],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator semver_less_than",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "semver_less_than",
+          field: "version",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", version: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("semver_less_than returns false for invalid user version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_less_than", field: "version", value: "2.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "abc" })
+    ).toBe(false);
+  });
+
+  it("semver_less_than returns false for invalid rule version", () => {
+    const rules: Rule[] = [
+      { operator: "semver_less_than", field: "version", value: "xyz" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: "1.0.0" })
+    ).toBe(false);
+  });
+
+  it("semver_less_than returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "semver_less_than", field: "version", value: "2.0.0" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", version: 100 })
+    ).toBe(false);
+  });
+
+  it("semver_less_than returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "semver_less_than", field: "version", value: "2.0.0" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
   describe("greater_than / less_than edge cases", () => {
     it("greater_than with Infinity", () => {
       const rules: Rule[] = [

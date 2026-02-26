@@ -124,6 +124,9 @@ Rules support the following operators:
 | `is_set` | — | User field exists and is not `null`/`undefined` |
 | `is_not_set` | — | User field is missing, `null`, or `undefined` |
 | `modulo` | `{ divisor, remainder }` | `fieldValue % divisor === remainder` |
+| `semver_equal` | `string` | User field equals the semver version |
+| `semver_greater_than` | `string` | User field is a greater semver version |
+| `semver_less_than` | `string` | User field is a lesser semver version |
 
 ### Segments
 

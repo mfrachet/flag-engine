@@ -19,7 +19,10 @@ export type ConditionOperator =
   | "date_after"
   | "is_set"
   | "is_not_set"
-  | "modulo";
+  | "modulo"
+  | "semver_equal"
+  | "semver_greater_than"
+  | "semver_less_than";
 
 export type RuleValuePrimitive =
   | object
@@ -71,6 +74,12 @@ export type ModuloRule = {
   value: { divisor: number; remainder: number };
 };
 
+export type SemVerRule = {
+  field: string;
+  operator: "semver_equal" | "semver_greater_than" | "semver_less_than";
+  value: string;
+};
+
 export type SegmentRule = {
   inSegment: Segment;
 };
@@ -83,6 +92,7 @@ export type Rule =
   | DateComparisonRule
   | ExistenceRule
   | ModuloRule
+  | SemVerRule
   | SegmentRule;
 
 export type Segment = {

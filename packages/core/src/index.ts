@@ -81,6 +81,7 @@ export type {
   RuleValuePrimitive,
   Segment,
   SegmentRule,
+  SemVerRule,
   Strategy,
   StringMatchRule,
   UserConfiguration,
