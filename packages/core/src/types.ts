@@ -7,7 +7,7 @@ export type ConditionOperator =
   | "greater_than"
   | "less_than";
 
-type RuleValuePrimitive =
+export type RuleValuePrimitive =
   | object
   | null
   | undefined

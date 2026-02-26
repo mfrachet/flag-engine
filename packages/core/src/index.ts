@@ -63,4 +63,18 @@ export const createFlagEngine = (
   };
 };
 
-export type { FlagsConfiguration, UserConfiguration } from "./types";
+export type {
+  ConditionOperator,
+  EvaluationMachine,
+  FlagConfiguration,
+  FlagDict,
+  FlagStatus,
+  FlagsConfiguration,
+  Rule,
+  RuleValuePrimitive,
+  Segment,
+  Strategy,
+  UserConfiguration,
+  UserContextFlagEvaluation,
+  Variant,
+} from "./types";
