@@ -16,25 +16,33 @@ export type RuleValuePrimitive =
   | boolean
   | Date;
 
+export type EqualityRule = {
+  field: string;
+  operator: "equals" | "not_equals";
+  value: Array<RuleValuePrimitive>;
+};
+
+export type StringMatchRule = {
+  field: string;
+  operator: "contains" | "not_contains";
+  value: Array<string>;
+};
+
+export type NumericComparisonRule = {
+  field: string;
+  operator: "greater_than" | "less_than";
+  value: number;
+};
+
+export type SegmentRule = {
+  inSegment: Segment;
+};
+
 export type Rule =
-  | {
-      field: string;
-      operator: "equals" | "not_equals";
-      value: Array<RuleValuePrimitive>;
-    }
-  | {
-      field: string;
-      operator: "contains" | "not_contains";
-      value: Array<string>;
-    }
-  | {
-      field: string;
-      operator: "greater_than" | "less_than";
-      value: number;
-    }
-  | {
-      inSegment: Segment;
-    };
+  | EqualityRule
+  | StringMatchRule
+  | NumericComparisonRule
+  | SegmentRule;
 
 export type Segment = {
   name: string;
