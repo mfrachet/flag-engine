@@ -1,11 +1,25 @@
 export type FlagStatus = "enabled" | "disabled";
+
+/** ISO 8601 date string (e.g., "2025-01-15T00:00:00Z") */
+export type DateString = string;
+
 export type ConditionOperator =
   | "equals"
   | "not_equals"
   | "contains"
   | "not_contains"
+  | "starts_with"
+  | "ends_with"
+  | "regex"
   | "greater_than"
-  | "less_than";
+  | "less_than"
+  | "greater_than_or_equal"
+  | "less_than_or_equal"
+  | "date_before"
+  | "date_after"
+  | "is_set"
+  | "is_not_set"
+  | "modulo";
 
 export type RuleValuePrimitive =
   | object
@@ -24,14 +38,37 @@ export type EqualityRule = {
 
 export type StringMatchRule = {
   field: string;
-  operator: "contains" | "not_contains";
+  operator: "contains" | "not_contains" | "starts_with" | "ends_with";
   value: Array<string>;
+};
+
+export type RegexRule = {
+  field: string;
+  operator: "regex";
+  value: string;
 };
 
 export type NumericComparisonRule = {
   field: string;
-  operator: "greater_than" | "less_than";
+  operator: "greater_than" | "less_than" | "greater_than_or_equal" | "less_than_or_equal";
   value: number;
+};
+
+export type DateComparisonRule = {
+  field: string;
+  operator: "date_before" | "date_after";
+  value: DateString;
+};
+
+export type ExistenceRule = {
+  field: string;
+  operator: "is_set" | "is_not_set";
+};
+
+export type ModuloRule = {
+  field: string;
+  operator: "modulo";
+  value: { divisor: number; remainder: number };
 };
 
 export type SegmentRule = {
@@ -41,7 +78,11 @@ export type SegmentRule = {
 export type Rule =
   | EqualityRule
   | StringMatchRule
+  | RegexRule
   | NumericComparisonRule
+  | DateComparisonRule
+  | ExistenceRule
+  | ModuloRule
   | SegmentRule;
 
 export type Segment = {

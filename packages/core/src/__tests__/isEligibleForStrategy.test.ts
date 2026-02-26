@@ -517,6 +517,520 @@ describe("isEligibleForStrategy", () => {
     });
   });
 
+  // ── starts_with ──────────────────────────────────────────────────────
+
+  it.each([
+    ["hello world", ["hello"], true],
+    ["hello world", ["world"], false],
+    ["Hello", ["hello"], false], // case-sensitive
+    ["hello", ["hi", "he"], true], // multiple values (OR)
+    ["hello", ["hi", "wo"], false],
+    ["", [""], true],
+    ["hello", [""], true], // every string starts with ""
+    ["hello", [], false], // empty array
+    ["TypeScript", ["Type"], true],
+    ["TypeScript", ["script"], false],
+    ["TypeScript", ["TypeScript"], true], // exact match
+    ["TypeScript", ["TypeScriptX"], false], // longer than field
+    ["abc", ["a", "b", "c"], true],
+    ["abc", ["d", "e", "f"], false],
+  ])(
+    "when field is '%s' and value is '%s', then it should return '%s' for operator starts_with",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "starts_with",
+          field: "name",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", name: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("starts_with returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "starts_with", field: "name", value: ["hello"] },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", name: 42 })
+    ).toBe(false);
+  });
+
+  it("starts_with returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "starts_with", field: "name", value: ["hello"] },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── ends_with ───────────────────────────────────────────────────────
+
+  it.each([
+    ["hello world", ["world"], true],
+    ["hello world", ["hello"], false],
+    ["Hello", ["LO"], false], // case-sensitive
+    ["Hello", ["lo"], true],
+    ["test.ts", [".js", ".ts"], true], // multiple values (OR)
+    ["test.ts", [".js", ".py"], false],
+    ["", [""], true],
+    ["hello", [""], true], // every string ends with ""
+    ["hello", [], false], // empty array
+    ["TypeScript", ["Script"], true],
+    ["TypeScript", ["Type"], false],
+    ["TypeScript", ["TypeScript"], true], // exact match
+    ["TypeScript", ["XTypeScript"], false], // longer than field
+    ["abc", ["a", "b", "c"], true],
+    ["abc", ["d", "e", "f"], false],
+  ])(
+    "when field is '%s' and value is '%s', then it should return '%s' for operator ends_with",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "ends_with",
+          field: "name",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", name: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("ends_with returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "ends_with", field: "name", value: [".com"] },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", name: 42 })
+    ).toBe(false);
+  });
+
+  it("ends_with returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "ends_with", field: "name", value: [".com"] },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── regex ───────────────────────────────────────────────────────────
+
+  it.each([
+    ["hello123", "\\d+", true],
+    ["hello", "^\\d+$", false],
+    ["2025-01-01", "^\\d{4}-\\d{2}-\\d{2}$", true],
+    ["test@example.com", "@example\\.com$", true],
+    ["test@example.org", "@example\\.com$", false],
+    ["Hello", "^hello$", false], // case-sensitive by default
+    ["hello", "^hello$", true],
+    ["", ".*", true], // empty string matches .*
+    ["abc", "^abc$", true],
+    ["abc", "^ABC$", false],
+    ["foo bar baz", "\\bbar\\b", true],
+    ["foobarbaz", "\\bbar\\b", false],
+    ["12345", "^\\d{5}$", true],
+    ["1234", "^\\d{5}$", false],
+  ])(
+    "when field is '%s' and pattern is '%s', then it should return '%s' for operator regex",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "regex",
+          field: "name",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", name: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("regex returns false for invalid regex pattern", () => {
+    const rules: Rule[] = [
+      { operator: "regex", field: "name", value: "[invalid(" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", name: "test" })
+    ).toBe(false);
+  });
+
+  it("regex returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "regex", field: "name", value: "\\d+" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", name: 42 })
+    ).toBe(false);
+  });
+
+  it("regex returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "regex", field: "name", value: "\\d+" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── greater_than_or_equal ───────────────────────────────────────────
+
+  it.each([
+    [5, 5, true], // equal
+    [6, 5, true], // greater
+    [4, 5, false], // less
+    [0, 0, true],
+    [-1, 0, false],
+    [0, -1, true],
+    [3.5, 3.5, true],
+    [3.6, 3.5, true],
+    [3.4, 3.5, false],
+    [NaN, 0, false],
+    [0, NaN, false],
+    [Infinity, 100, true],
+    [100, Infinity, false],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator greater_than_or_equal",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "greater_than_or_equal",
+          field: "score",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", score: userValue as number })
+      ).toBe(expected);
+    }
+  );
+
+  it("greater_than_or_equal returns false when field is non-number", () => {
+    const rules: Rule[] = [
+      { operator: "greater_than_or_equal", field: "score", value: 5 },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", score: "5" })
+    ).toBe(false);
+  });
+
+  it("greater_than_or_equal returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "greater_than_or_equal", field: "score", value: 5 },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── less_than_or_equal ──────────────────────────────────────────────
+
+  it.each([
+    [5, 5, true], // equal
+    [4, 5, true], // less
+    [6, 5, false], // greater
+    [0, 0, true],
+    [0, -1, false],
+    [-1, 0, true],
+    [3.5, 3.5, true],
+    [3.4, 3.5, true],
+    [3.6, 3.5, false],
+    [NaN, 0, false],
+    [0, NaN, false],
+    [-Infinity, 0, true],
+    [0, -Infinity, false],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator less_than_or_equal",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "less_than_or_equal",
+          field: "score",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", score: userValue as number })
+      ).toBe(expected);
+    }
+  );
+
+  it("less_than_or_equal returns false when field is non-number", () => {
+    const rules: Rule[] = [
+      { operator: "less_than_or_equal", field: "score", value: 5 },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", score: "5" })
+    ).toBe(false);
+  });
+
+  it("less_than_or_equal returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "less_than_or_equal", field: "score", value: 5 },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── date_before ─────────────────────────────────────────────────────
+
+  it.each([
+    ["2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z", true],
+    ["2026-01-01T00:00:00Z", "2025-01-01T00:00:00Z", false],
+    ["2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z", false], // same = not before
+    ["2024-06-15", "2024-06-16", true], // date-only strings
+    ["2024-06-16", "2024-06-15", false],
+    ["2024-06-15", "2024-06-15", false],
+    ["2020-12-31T23:59:59Z", "2021-01-01T00:00:00Z", true],
+    ["2021-01-01T00:00:01Z", "2021-01-01T00:00:00Z", false],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator date_before",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "date_before",
+          field: "createdAt",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", createdAt: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("date_before returns false for invalid user date", () => {
+    const rules: Rule[] = [
+      { operator: "date_before", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: "not-a-date" })
+    ).toBe(false);
+  });
+
+  it("date_before returns false for invalid rule date", () => {
+    const rules: Rule[] = [
+      { operator: "date_before", field: "createdAt", value: "not-a-date" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: "2025-01-01T00:00:00Z" })
+    ).toBe(false);
+  });
+
+  it("date_before returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "date_before", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: 12345 })
+    ).toBe(false);
+  });
+
+  it("date_before returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "date_before", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── date_after ──────────────────────────────────────────────────────
+
+  it.each([
+    ["2026-01-01T00:00:00Z", "2025-01-01T00:00:00Z", true],
+    ["2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z", false],
+    ["2025-01-01T00:00:00Z", "2025-01-01T00:00:00Z", false], // same = not after
+    ["2024-06-16", "2024-06-15", true], // date-only strings
+    ["2024-06-15", "2024-06-16", false],
+    ["2021-01-01T00:00:01Z", "2021-01-01T00:00:00Z", true],
+    ["2020-12-31T23:59:59Z", "2021-01-01T00:00:00Z", false],
+  ])(
+    "when field is '%s' and rule value is '%s', then it should return '%s' for operator date_after",
+    (userValue, ruleValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "date_after",
+          field: "createdAt",
+          value: ruleValue,
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", createdAt: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("date_after returns false for invalid user date", () => {
+    const rules: Rule[] = [
+      { operator: "date_after", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: "not-a-date" })
+    ).toBe(false);
+  });
+
+  it("date_after returns false for invalid rule date", () => {
+    const rules: Rule[] = [
+      { operator: "date_after", field: "createdAt", value: "not-a-date" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: "2025-01-01T00:00:00Z" })
+    ).toBe(false);
+  });
+
+  it("date_after returns false when field is non-string", () => {
+    const rules: Rule[] = [
+      { operator: "date_after", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", createdAt: 12345 })
+    ).toBe(false);
+  });
+
+  it("date_after returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "date_after", field: "createdAt", value: "2025-01-01T00:00:00Z" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── is_set ──────────────────────────────────────────────────────────
+
+  it.each([
+    ["hello", true], // string
+    [42, true], // number
+    [0, true], // zero
+    [false, true], // boolean false
+    ["", true], // empty string
+    [true, true], // boolean true
+    [null, false], // null
+    [undefined, false], // undefined
+  ])(
+    "when field value is '%s', then it should return '%s' for operator is_set",
+    (userValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "is_set",
+          field: "attr",
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", attr: userValue as string })
+      ).toBe(expected);
+    }
+  );
+
+  it("is_set returns false when field is missing entirely", () => {
+    const rules: Rule[] = [
+      { operator: "is_set", field: "attr" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  // ── is_not_set ──────────────────────────────────────────────────────
+
+  it.each([
+    ["hello", false], // string
+    [42, false], // number
+    [0, false], // zero
+    [false, false], // boolean false
+    ["", false], // empty string
+    [true, false], // boolean true
+    [null, true], // null
+    [undefined, true], // undefined
+  ])(
+    "when field value is '%s', then it should return '%s' for operator is_not_set",
+    (userValue, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "is_not_set",
+          field: "attr",
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", attr: userValue as string })
+      ).toBe(expected);
+    }
+  );
+
+  it("is_not_set returns true when field is missing entirely", () => {
+    const rules: Rule[] = [
+      { operator: "is_not_set", field: "attr" },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(true);
+  });
+
+  // ── modulo ──────────────────────────────────────────────────────────
+
+  it.each([
+    [10, 3, 1, true], // 10 % 3 === 1
+    [10, 3, 0, false], // 10 % 3 !== 0
+    [0, 5, 0, true], // 0 % 5 === 0
+    [100, 10, 0, true], // 100 % 10 === 0
+    [7, 2, 1, true], // 7 % 2 === 1
+    [7, 2, 0, false],
+    [15, 4, 3, true], // 15 % 4 === 3
+    [-7, 3, -1, true], // JS: -7 % 3 === -1
+    [-7, 3, 2, false],
+    [99, 100, 99, true],
+    [1, 1, 0, true], // any int % 1 === 0
+  ])(
+    "when field is %s and divisor is %s and remainder is %s, then it should return %s for operator modulo",
+    (userValue, divisor, remainder, expected) => {
+      const rules: Rule[] = [
+        {
+          operator: "modulo",
+          field: "userId",
+          value: { divisor, remainder },
+        },
+      ];
+
+      expect(
+        isEligibleForStrategy(rules, { __id: "yo", userId: userValue })
+      ).toBe(expected);
+    }
+  );
+
+  it("modulo returns false when divisor is 0 (NaN result)", () => {
+    const rules: Rule[] = [
+      { operator: "modulo", field: "userId", value: { divisor: 0, remainder: 0 } },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", userId: 10 })
+    ).toBe(false);
+  });
+
+  it("modulo returns false when field is non-number", () => {
+    const rules: Rule[] = [
+      { operator: "modulo", field: "userId", value: { divisor: 3, remainder: 1 } },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", userId: "10" })
+    ).toBe(false);
+  });
+
+  it("modulo returns false when field is missing", () => {
+    const rules: Rule[] = [
+      { operator: "modulo", field: "userId", value: { divisor: 3, remainder: 1 } },
+    ];
+    expect(isEligibleForStrategy(rules, { __id: "yo" })).toBe(false);
+  });
+
+  it("modulo returns false when field is NaN", () => {
+    const rules: Rule[] = [
+      { operator: "modulo", field: "userId", value: { divisor: 3, remainder: 0 } },
+    ];
+    expect(
+      isEligibleForStrategy(rules, { __id: "yo", userId: NaN })
+    ).toBe(false);
+  });
+
   describe("greater_than / less_than edge cases", () => {
     it("greater_than with Infinity", () => {
       const rules: Rule[] = [
@@ -550,7 +1064,7 @@ describe("isEligibleForStrategy", () => {
     it("returns false for an unknown operator", () => {
       const rules = [
         {
-          operator: "starts_with" as "equals",
+          operator: "unknown_op" as "equals",
           field: "name",
           value: ["test"],
         },

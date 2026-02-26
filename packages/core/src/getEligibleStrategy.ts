@@ -71,6 +71,90 @@ export const isEligibleForStrategy = (
         return rule.value.every((v) => !fieldValue.includes(v));
       }
 
+      case "starts_with": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        return rule.value.some((v) => fieldValue.startsWith(v));
+      }
+
+      case "ends_with": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        return rule.value.some((v) => fieldValue.endsWith(v));
+      }
+
+      case "regex": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        try {
+          return new RegExp(rule.value).test(fieldValue);
+        } catch {
+          return false;
+        }
+      }
+
+      case "greater_than_or_equal": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (typeof fieldValue !== "number") return false;
+
+        return fieldValue >= rule.value;
+      }
+
+      case "less_than_or_equal": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (typeof fieldValue !== "number") return false;
+
+        return fieldValue <= rule.value;
+      }
+
+      case "date_before": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        const userDate = new Date(fieldValue);
+        const ruleDate = new Date(rule.value);
+        if (isNaN(userDate.getTime()) || isNaN(ruleDate.getTime()))
+          return false;
+        return userDate < ruleDate;
+      }
+
+      case "date_after": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (!isString(fieldValue)) return false;
+        const userDate = new Date(fieldValue);
+        const ruleDate = new Date(rule.value);
+        if (isNaN(userDate.getTime()) || isNaN(ruleDate.getTime()))
+          return false;
+        return userDate > ruleDate;
+      }
+
+      case "is_set":
+        return (
+          userConfiguration[rule.field] !== undefined &&
+          userConfiguration[rule.field] !== null
+        );
+
+      case "is_not_set":
+        return (
+          userConfiguration[rule.field] === undefined ||
+          userConfiguration[rule.field] === null
+        );
+
+      case "modulo": {
+        const fieldValue = userConfiguration[rule.field];
+
+        if (typeof fieldValue !== "number") return false;
+        const result = fieldValue % rule.value.divisor;
+        if (isNaN(result)) return false;
+        return result === rule.value.remainder;
+      }
+
       default:
         return false;
     }

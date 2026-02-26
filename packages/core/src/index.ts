@@ -65,13 +65,18 @@ export const createFlagEngine = (
 
 export type {
   ConditionOperator,
+  DateComparisonRule,
+  DateString,
   EqualityRule,
   EvaluationMachine,
+  ExistenceRule,
   FlagConfiguration,
   FlagDict,
   FlagStatus,
   FlagsConfiguration,
+  ModuloRule,
   NumericComparisonRule,
+  RegexRule,
   Rule,
   RuleValuePrimitive,
   Segment,

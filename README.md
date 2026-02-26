@@ -112,8 +112,18 @@ Rules support the following operators:
 | `not_equals` | `string[]` | User field matches **none** of the values in the array |
 | `contains` | `string[]` | User string field includes **any** of the substrings in the array |
 | `not_contains` | `string[]` | User string field includes **none** of the substrings in the array |
-| `greater_than` | `number` | User numeric field is greater than the value |
-| `less_than` | `number` | User numeric field is less than the value |
+| `starts_with` | `string[]` | User string field starts with **any** of the prefixes in the array |
+| `ends_with` | `string[]` | User string field ends with **any** of the suffixes in the array |
+| `regex` | `string` | User string field matches the regular expression pattern |
+| `greater_than` | `number` | User numeric field is strictly greater than the value |
+| `less_than` | `number` | User numeric field is strictly less than the value |
+| `greater_than_or_equal` | `number` | User numeric field is greater than or equal to the value |
+| `less_than_or_equal` | `number` | User numeric field is less than or equal to the value |
+| `date_before` | `DateString` | User ISO date string field is strictly before the value |
+| `date_after` | `DateString` | User ISO date string field is strictly after the value |
+| `is_set` | — | User field exists and is not `null`/`undefined` |
+| `is_not_set` | — | User field is missing, `null`, or `undefined` |
+| `modulo` | `{ divisor, remainder }` | `fieldValue % divisor === remainder` |
 
 ### Segments
 
