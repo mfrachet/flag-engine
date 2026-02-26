@@ -2,8 +2,8 @@ import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 
-const external = ["murmurhash-js"];
-const globals = { "murmurhash-js": "murmurhash-js" };
+const external = ["murmurhash-js", "semver"];
+const globals = { "murmurhash-js": "murmurhash-js", "semver": "semver" };
 
 export default () => {
   return {
